@@ -9,19 +9,19 @@
 #include <Wire.h>
 #include <U8g2lib.h>
 
-// ============ WIFI ============
+// WIFI
 const char* WIFI_SSID = "Sony xperia XZ3";
 const char* WIFI_PASS = "01234567";
 
-// ============ TELEGRAM ============
+// TELEGRAM
 String BOT_TOKEN = "8379306582:AAG5pZ21yhaCnYL6Y3Xe0f-H8VgJuSFGwnI";
-String CHAT_ID   = "6353398984";   // ex: 6353398984
-String CAM_URL   = "http://192.168.43.21";   // URL ESP32-CAM
+String CHAT_ID   = "6353398984";   
+String CAM_URL   = "http://192.168.43.21";   
 
-// ============ RFID ============
+// RFID 
 String ALLOWED_UID = "73 29 01 4B";  // ta carte autorisée
 
-// ============ PINS (ESP32 DEV KIT) ============
+// PINS 
 #define RFID_SS   5
 #define RFID_RST  4
 
@@ -31,7 +31,7 @@ String ALLOWED_UID = "73 29 01 4B";  // ta carte autorisée
 #define I2C_SDA   21
 #define I2C_SCL   22
 
-// ============ OBJETS ============
+// OBJETS
 MFRC522 rfid(RFID_SS, RFID_RST);
 Servo doorServo;
 
@@ -39,7 +39,7 @@ U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
 
 WiFiClientSecure secureClient;
 
-// ============ VARIABLES ============
+// VARIABLES 
 unsigned long lastAlertMs = 0;
 const unsigned long ALERT_COOLDOWN_MS = 8000;
 
@@ -126,7 +126,6 @@ String telegramGetUpdates() {
   return payload;
 }
 
-// parse simple: cherche "update_id": puis "text":"..."
 void handleTelegramCommands() {
   if (WiFi.status() != WL_CONNECTED) return;
 
@@ -159,15 +158,15 @@ void handleTelegramCommands() {
 
   if (text == "/open") {
     if (pendingRemoteApproval) {
-      telegramSend("✅ Ouverture autorisée à distance (dernier UID refusé: " + lastDeniedUID + ")");
+      telegramSend(" Ouverture autorisée à distance (dernier UID refusé: " + lastDeniedUID + ")");
       openDoor(5000);
       pendingRemoteApproval = false;
     } else {
-      telegramSend("ℹ️ Aucun accès refusé en attente. Scannez une carte refusée d'abord.");
+      telegramSend(" Aucun accès refusé en attente. Scannez une carte refusée d'abord.");
     }
   } 
   else if (text == "/status") {
-    String s = "📡 STATUS\nWiFi: " + String(WiFi.status() == WL_CONNECTED ? "OK" : "OFF")
+    String s = " STATUS\nWiFi: " + String(WiFi.status() == WL_CONNECTED ? "OK" : "OFF")
              + "\nDernier refus: " + (lastDeniedUID.length() ? lastDeniedUID : "Aucun")
              + "\nCam: " + CAM_URL;
     telegramSend(s);
@@ -192,7 +191,7 @@ void setup() {
   oledMessage("DEMARRAGE...", "Scan I2C");
   int n = i2cScan();
   if (n == 0) {
-    Serial.println("⚠️ Aucun device I2C detecte (OLED?)");
+    Serial.println(" Aucun device I2C detecte (OLED?)");
     oledMessage("I2C: 0 device", "Verif cablage");
     delay(1500);
   }
@@ -213,7 +212,7 @@ void setup() {
     Serial.println("WiFi OK");
     Serial.println(WiFi.localIP());
     oledMessage("WiFi OK", "Systeme pret");
-    telegramSend("✅ ESP32 en ligne. Tape /status ou /open après un refus.");
+    telegramSend(" ESP32 en ligne. Tape /status ou /open après un refus.");
   } else {
     Serial.println("WiFi ECHEC");
     oledMessage("WiFi ECHEC", "Mode offline");
@@ -256,9 +255,9 @@ void loop() {
     lastDeniedUID = uid;
 
     if (WiFi.status() == WL_CONNECTED && millis() - lastAlertMs > ALERT_COOLDOWN_MS) {
-      String msg = "🚫 Accès refusé (UID: " + uid + ")\n"
-                   "📷 Caméra: " + CAM_URL + "\n"
-                   "✅ Si tu acceptes: tape /open";
+      String msg = " Accès refusé (UID: " + uid + ")\n"
+                   " Caméra: " + CAM_URL + "\n"
+                   " Si tu acceptes: tape /open";
       telegramSend(msg);
       lastAlertMs = millis();
     }
